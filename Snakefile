@@ -3,17 +3,20 @@ SUBSETS = ["2000000", "3000000", "4000000"]
 
 rule all:
     input:
-        f"{SAMPLE}_quast.4000000",
-        f"{SAMPLE}_annot.4000000",
+        expand(f"{SAMPLE}_quast.{{subset}}", subset=SUBSETS),
+        expand(f"{SAMPLE}_annot.{{subset}}", subset=SUBSETS)
 
 rule subset_reads:
     input:
-        "../fastq/{sample}.fastq.gz"
+        r1="../fastq/{sample}_1.fastq.gz",
+        r2="../fastq/{sample}_2.fastq.gz"
     output:
-        "{sample}.{subset}.fastq.gz"
+        r1="{sample}_1.{subset}.fastq.gz",
+        r2="{sample}_2.{subset}.fastq.gz"
     shell:
         """
-        (gunzip -c {input} || true) | head -n {wildcards.subset} | gzip -9c > {output}
+        (gunzip -c {input.r1} || true) | head -n {wildcards.subset} | gzip -9c > {output.r1}
+        (gunzip -c {input.r2} || true) | head -n {wildcards.subset} | gzip -9c > {output.r2}
         """
 
 rule assemble:
